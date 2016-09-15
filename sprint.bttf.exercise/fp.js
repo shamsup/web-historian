@@ -82,39 +82,29 @@ console.log("All good!");
 
 function findDominatingAliceGameScores2 (data) {
 
-}
-//findDominatingAliceGameScores2(filterDominatedGames, mapGamesAliceDominated, filterGamesAliceWon, findAlice);
+  var alice = Data.players.find(hasName('Alice'));
 
-
-  // Next, find all games where alice won
-
-  // Next, filter for dominating games and add differences
-
-var findAlice = function(players) {
-  return players.name === 'Alice';
+  var aliceGames = Data.games.filter(isWinningGameFor(alice['id'])); //Creating new array where Alice wins
+  //
+  var dominatedGames = aliceGames.map(toPlayerScoreDifference).filter(greaterThanOrEqualTo(50));
+  return dominatedGames;
 }
 
-// "Filter" function
-var filterGamesAliceWon = function(games) {
-  //console.log("games", games);
-  return games.player1_id === alice.id && games.player1_score === 100
-    || games.player2_id === alice.id && games.player2_score === 100
-}
-
-// "Map" function
-var mapGamesAliceDominated = function(array) {
-  return Math.abs(array.player1_score - array.player2_score);
-}
-
-// Additional "Filter" function
-var filterDominatedGames = function(scoreDifference) {
-      return scoreDifference >= 50;
-};
-
-function hasName (name) {
+var hasName = function (name) {
   return function (person) {
     return person.name === name;
   };
+}
+
+var isWinningGameFor = function (playerId) {
+  return function (game) {
+    return game.player1_id === playerId && game.player1_score === 100
+        || game.player2_id === playerId && game.player2_score === 100;
+  };
+}
+
+var toPlayerScoreDifference = function (game) {
+  return Math.abs(game.player1_score - game.player2_score);
 }
 
 function propEq (prop) {
@@ -123,20 +113,15 @@ function propEq (prop) {
   };
 }
 
-function isWinningGameFor (playerId) {
-  return function (game) {
-    return game.player1_id === playerId && game.player1_score === 100
-        || game.player2_id === playerId && game.player2_score === 100;
-  };
+
+
+function greaterThanOrEqualTo (comparativeNumber) {
+  return function (arrayIterations) {
+    return comparativeNumber <= arrayIterations;
+  }
 }
 
-function toPlayerScoreDifference (game) {
-  return Math.abs(game.player1_score - game.player2_score);
-}
-
-function greaterThanOrEqualTo (amount) {
-  // TODO: Implement this function, curry-style.
-}
+"[20, 30, 50].filter(greaterThanOrEqualTo(50));"
 
 console.log("[Exercise #2]")
 
