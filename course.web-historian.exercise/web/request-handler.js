@@ -36,8 +36,6 @@ exports.handleRequest = function (req, res) {
               });
             }
           });
-          res.writeHead(302);
-          res.end();
         }
       });
     });
@@ -47,8 +45,15 @@ exports.handleRequest = function (req, res) {
     });
   } else if (req.method === 'GET') {
     var match = req.url.match(/^\/([^\/]*)/)[1];
-    fs.readFile(archive.paths.archivedSites + '/' + match, (err, data) => {
-      helpers.endResponseWithContents(res, null, 404, null, err, data);
+    archive.isUrlInList(match, (err, exists) => {
+      if (exists) {
+        fs.readFile(archive.paths.archivedSites + '/' + match, (err, data) => {
+          helpers.endResponseWithContents(res, null, 404, null, err, data);
+        });
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
     });
   } else {
     res.writeHead(404);

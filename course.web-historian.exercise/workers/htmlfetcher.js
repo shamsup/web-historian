@@ -4,17 +4,19 @@ var archive = require('../helpers/archive-helpers');
 
 archive.readListOfUrls((err, data) => {
   if (err) { throw err; }
-  var checkCounter = 0;
+  var checkCounter = 1;
   var urlArray = [];
   data.forEach((datum) =>{
-    archive.isUrlArchived(datum, (err, bool) => {
-      if (!bool) {
-        urlArray.push(datum);
-      }
-      if (data.length === checkCounter) {
-        archive.downloadUrls(urlArray);
-      }
-    });
+    if (datum) {
+      archive.isUrlArchived(datum, (err, bool) => {
+        checkCounter++;
+        if (!bool) {
+          urlArray.push(datum);
+        }
+        if (data.length === checkCounter) {
+          archive.downloadUrls(urlArray);
+        }
+      });
+    }
   });
-
 });
