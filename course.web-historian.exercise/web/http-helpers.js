@@ -28,9 +28,22 @@ exports.readBody = function (req, cb) {
     cb(body.reduce((obj, line) => {
       var keyVal = line.split('='); // => ['url', 'www.google.com']
       obj[keyVal[0]] = keyVal[1];
-      return obj; 
+      return obj;
     }, {}));
-  })
+  });
+};
+
+exports.endResponseWithContents = function(res, successCode, errCode, contentType, err, data) {
+  contentType = contentType || 'text/html';
+  errCode = errCode || 500;
+  successCode = successCode || 200;
+  if (err) {
+    res.writeHead(errCode);
+    res.end();
+  } else {
+    res.writeHead(successCode, { 'content-type': contentType });
+    res.end(data);
+  }
 };
 
 // As you progress, keep thinking about what helper functions you can put here!

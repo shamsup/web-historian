@@ -28,52 +28,53 @@ exports.initialize = function(pathsObj) {
 
 exports.readListOfUrls = function(cb) {
   fs.readFile(exports.paths.list, function(err, data) {
-    if (err) {return cb(err)}
-    data = data.toString().split('\n')
-    cb(null, data)
+    if (err) { return cb(err); }
+    data = data.toString().split('\n');
+    cb(null, data);
   });
 };
 
 exports.isUrlInList = function(url, cb) {
   exports.readListOfUrls(function(err, data) {
-    if (err) return cb(err)
+    if (err) { return cb(err); }
     if (!~data.indexOf(url)) {
-      cb(null, false)
-    } else cb(null, true)
-  })
+      cb(null, false);
+    } else { cb(null, true); }
+  });
 };
 
 exports.addUrlToList = function(url, cb) {
   exports.readListOfUrls(function(err, data) {
-    if (err) return cb(err)
-    data.push(url)
-    data = data.map((item) => item + (item ? '\n' : ''))
-    console.log('data: ', data)
+    if (err) { return cb(err); }
+    data.push(url);
+    data = data.map((item) => item + (item ? '\n' : ''));
     fs.writeFile(exports.paths.list, data.join(''), function(err) {
-      if (err) return cb(err)
-      console.log('File saved!')
-      cb(null, true)
-    })
-  })
+      if (err) { return cb(err); }
+      cb(null, true);
+    });
+  });
 };
 
 exports.isUrlArchived = function(url, cb) {
   fs.exists(exports.paths.archivedSites + '/' + url, exists => cb(null, exists));
 };
 
-exports.downloadUrls = function(urlArray) {
-    urlArray.forEach((datum) => {
-      http.get('http://' + datum, (res) => {
-        var responseBody = []
-        res.on('data', (chunk) => {
-          responseBody.push(chunk.toString())
-        })
-        res.on('end', () => {
-          responseBody = responseBody.join('')
-          fs.writeFile((exports.paths.archivedSites + '/' + url), responseBody, function(err) {
-            if (err) throw err
-          })
-        })
-      })
-    })
+exports.downloadUrls = function(urlArray, cb) {
+  var counter = 0;
+  urlArray.forEach((datum) => {
+    http.get('http://' + datum, (res) => {
+      var responseBody = [];
+      res.on('data', (chunk) => {
+        responseBody.push(chunk.toString());
+      });
+      res.on('end', () => {
+        responseBody = responseBody.join('');
+        fs.writeFile((exports.paths.archivedSites + '/' + datum), responseBody, function(err) {
+          counter++;
+          if (err) { return console.log(err); }
+          if (cb && counter === urlArray.length) { cb(); }
+        });
+      });
+    });
+  });
 };

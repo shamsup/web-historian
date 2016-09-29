@@ -7,15 +7,7 @@ var fs = require('fs');
 exports.handleRequest = function (req, res) {
   if (req.method === 'GET' && req.url === '/') {
     fs.readFile('web/public/index.html', function(err, data) {
-      if (err) {
-        console.log("err", err)
-        res.writeHead(500)
-        res.end('Error: 500, couldn\'t find index.html, my fault')
-      } else {
-        console.log("data", data.toString())
-        res.writeHead(200, helpers.headers)
-        res.end(data)
-      }
+      helpers.endResponseWithContents(res, null, null, null, err, data);
     });
   } else if (req.method === 'POST' && req.url === '/') {
     helpers.readBody(req, function(body) {
@@ -23,24 +15,43 @@ exports.handleRequest = function (req, res) {
         if (!exists) {
           archive.addUrlToList(body.url, function(err, boolean) {
             if (err) {
-              console.log("err", err)
-              res.writeHead(500)
-              res.end('Error: 500, couldn\'t find index.html, my fault')
+              console.log('err', err);
+              res.writeHead(500);
+              res.end('Error: 500, couldn\'t find index.html, my fault');
             } else {
-              res.writeHead(201)
-              res.end()
+              fs.readFile('web/public/loading.html', (err, data) => {
+                helpers.endResponseWithContents(res, 201, null, null, err, data);
+              });
             }
-          })
+          });
         } else {
-          res.writeHead(302)
-          res.end()
+          archive.isUrlArchived(body.url, (err, exists) => {
+            if (exists) {
+              fs.readFile(archive.paths.archivedSites + '/' + body.url, (err, data) => {
+                helpers.endResponseWithContents(res, null, 500, null, err, data);
+              });
+            } else {
+              fs.readFile('./web/public/loading.html', (err, data) => {
+                helpers.endResponseWithContents(res, null, 500, null, err, data);
+              });
+            }
+          });
+          res.writeHead(302);
+          res.end();
         }
-      })
+      });
     });
-
+  } else if (req.method === 'GET' && req.url === '/styles.css') {
+    fs.readFile('web/public/styles.css', function(err, data) {
+      helpers.endResponseWithContents(res, null, 'text/css', err, data);
+    });
+  } else if (req.method === 'GET') {
+    var match = req.url.match(/^\/([^\/]*)/)[1];
+    fs.readFile(archive.paths.archivedSites + '/' + match, (err, data) => {
+      helpers.endResponseWithContents(res, null, 404, null, err, data);
+    });
   } else {
     res.writeHead(404);
     res.end();
   }
-  // res.end(archive.paths.list);
 };

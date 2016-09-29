@@ -3,24 +3,18 @@
 var archive = require('../helpers/archive-helpers');
 
 archive.readListOfUrls((err, data) => {
-    if (err) throw err
-    data.forEach((datum) =>{
-      archive.isUrlArchived(datum, (err, bool) => bool)
-
-    })
-
-})
-
-
-
-exports.readListOfUrls = function(cb) {
-  fs.readFile(exports.paths.list, function(err, data) {
-    if (err) {return cb(err)}
-    data = data.toString().split('\n')
-    cb(null, data)
+  if (err) { throw err; }
+  var checkCounter = 0;
+  var urlArray = [];
+  data.forEach((datum) =>{
+    archive.isUrlArchived(datum, (err, bool) => {
+      if (!bool) {
+        urlArray.push(datum);
+      }
+      if (data.length === checkCounter) {
+        archive.downloadUrls(urlArray);
+      }
+    });
   });
-};
 
-exports.isUrlArchived = function(url, cb) {
-  fs.exists(exports.paths.archivedSites + '/' + url, exists => cb(null, exists));
-};
+});
